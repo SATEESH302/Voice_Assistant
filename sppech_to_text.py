@@ -48,7 +48,7 @@ import os
 import openai
 
 # personal ::
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = " "
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
