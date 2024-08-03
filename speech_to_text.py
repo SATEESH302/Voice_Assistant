@@ -20,7 +20,7 @@ def call_openai_api(final_prompt):
         messages=[
             {
                 "role": "system",
-                "content": "You are a expericed data scientist and python devolper, sql devloper to answer all the questions related to data science and sql and python",
+                "content": "You are expert in answering the interview questions.",
             },
             {
                 "role": "user",
@@ -59,8 +59,15 @@ def get_answer_for_question(text):
     print("text from audio:::::::::::::::", text)
 
     res = extract_question_from_text(text)
-    final_prompt = """for the given question in the backtick```{input}```,
-    please provide the answer  in two lines and do not give any explanation """.format(
+    final_prompt = """I'm preparing for a job interview and would like some help answering a potential interview question. 
+    Please provide a detailed response and include your chain of thought as you work through the answer.
+    Points to remeber before answering 
+    1) Understand the Question
+    2) Identify Relevant Knowledge related to answer
+    3) Structure the Answer and organize the response for clarity and impact
+    4) Give answer in simple terms so that interviewer can understand easily
+    for the given question in the backtick```{input}```,
+    please provide the answer  in three lines and do not give any explanation """.format(
         input=res
     )
     final_res = call_openai_api(final_prompt)
