@@ -97,13 +97,13 @@
                 recognition.onstart = () => {
                     const timestamp = new Date().toLocaleString();
                     console.log('started', timestamp);
-                    status.innerText = 'Speech recognition is on. Speak into the microphone.';
+                    // status.innerText = 'Speech recognition is on. Speak into the microphone.';
                     isRecognitionActive = true;
 
                     // Set a timeout to stop recognition after 5 minutes
                     recognitionTimeout = setTimeout(() => {
                         stopRecognition();
-                    }, 5 * 60 * 1000); // 5 minutes in milliseconds
+                    }, 1 * 60 * 1000); // 5 minutes in milliseconds
                 };
 
                 recognition.onresult = (event) => {
@@ -163,7 +163,7 @@
         function stopRecognition() {
             if (recognition) {
                 recognition.stop();
-                status.innerText = 'Speech recognition stopped after 5 minutes.';
+                // status.innerText = 'Speech recognition stopped after 5 minutes.';
                 isRecognitionActive = false;
                 clearTimeout(recognitionTimeout);
             }
@@ -186,7 +186,7 @@
         let lineElement = document.createElement('div');
         if (i % 2 === 0) {
             // lineElement.innerHTML = `<h4>${textArray[i]}</h4>`;
-            tex = `<h4>${textArray[i]}</    >`;
+            tex = `<h4>${textArray[i]}</h4 >`;
         } else {
             // lineElement.innerHTML = `<h5>${textArray[i]}</h5>`;
             tex = `<h5>${textArray[i]}</h5>`;

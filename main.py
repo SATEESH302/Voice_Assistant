@@ -78,10 +78,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     res_list = response.split(";")
                     
                     # only keep latest 5 responses
-                    if len(res_list) > 5:
-                        res_list = res_list[-5:]
+                    if len(res_list) > 3:
+                        res_list = res_list[:-3]
 
-                    response = ';\n\n'.join(res_list)                    
+                    response = ';'.join(res_list)                    
 
                     response =  response + "Question: " + data + "#\n" + "Answer: "  +full_reply_content + ";#\n\n" 
 
