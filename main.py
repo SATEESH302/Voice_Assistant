@@ -75,13 +75,21 @@ async def websocket_endpoint(websocket: WebSocket):
                     message = [m for m in res if m is not None]
                     full_reply_content = ''.join([m for m in message])
 
-                    response =   "Question: " + data + "\n" + "Answer: "  +full_reply_content + ";\n\n" + response
-
                     res_list = response.split(";")
+                    
+                    # only keep latest 5 responses
+                    if len(res_list) > 5:
+                        res_list = res_list[-5:]
+
+                    response = ';\n\n'.join(res_list)                    
+
+                    response =  response + "Question: " + data + "#\n" + "Answer: "  +full_reply_content + ";#\n\n" 
+
+                    
                     print("Question: " + data)
                     print("Answer: "  +full_reply_content)
 
-                    response = ";\n".join(res_list)
+                    # response = ";\n".join(res_list)
 
                     await manager.send_text(response, websocket)
                     res = []
