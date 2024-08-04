@@ -199,8 +199,8 @@
 }
 
         startButton.onclick = () => {
-            // Initialize WebSocket connection
-            ws = new WebSocket('ws://127.0.0.1:8000/ws');
+            ws = new WebSocket('wss://aide-3ai.com/ws');
+
             ws.onopen = () => {
                 console.log('WebSocket connection opened.');
                 startRecognition();

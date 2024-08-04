@@ -1,6 +1,6 @@
-flask==3.0.3
-numpy==2.0.1
-scipy==1.14.0
-openai==1.38.0
-websockets==12.0
-fastapi==0.112.0
+numpy
+scipy
+openai
+websockets
+fastapi
+uvicorn
