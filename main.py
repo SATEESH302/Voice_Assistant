@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect , Request
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse
 
 import openai
@@ -11,7 +11,7 @@ app = FastAPI()
 
 response = ""
 
-os.environ["OPENAI_API_KEY"] =  open_ai_key #OPENAI_API_KEY
+os.environ["OPENAI_API_KEY"] = open_ai_key  # OPENAI_API_KEY
 
 client = openai.OpenAI()
 
@@ -21,23 +21,22 @@ start_time = time.time()
 
 def call_open_api(message):
     completion = client.chat.completions.create(
-        model='gpt-3.5-turbo',
-        
+        model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are a assistance named Bluu , A asistance from scalebuildAI , you help people to find the best product for them , Scalebuild ios a software company"},
-            #add 10 last messages history here
-
-            {'role': 'user', 'content': message}
+            {
+                "role": "system",
+                "content": "You are a assistance named Bluu , A asistance from scalebuildAI , you help people to find the best product for them , Scalebuild ios a software company",
+            },
+            # add 10 last messages history here
+            {"role": "user", "content": message},
         ],
         temperature=0,
-        stream=True  # again, we set stream=True
+        stream=True,  # again, we set stream=True
     )
 
     return completion
     # create variables to collect the stream of chunks
-    
-    
-    
+
 
 class ConnectionManager:
     def __init__(self):
@@ -53,47 +52,46 @@ class ConnectionManager:
     async def send_text(self, text: str, websocket: WebSocket):
         await websocket.send_text(text)
 
+
 manager = ConnectionManager()
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
-    global response 
+    global response
     try:
         while True:
             try:
                 # Receive text data (speech recognition result) from the client
                 data = await websocket.receive_text()
-                
+
+                # Initialize a list to store questions and answers if not already initialized
+                if "qa_list" not in globals():
+                    global qa_list
+                    qa_list = []
+
                 # Process the data
                 print(f"Received text: {data}")  # Example: print it to the console
                 res = get_answer_for_question(data)
 
-                # response = "Question: " + data + response + "\n"
+                # Append the question to the list
+                qa_list.append(f"Question#{data}")
 
                 if len(res) > 0:
                     message = [m for m in res if m is not None]
-                    full_reply_content = ''.join([m for m in message])
+                    full_reply_content = "".join([m for m in message])
 
-                    res_list = response.split(";")
-                    
-                    # only keep latest 5 responses
-                    if len(res_list) > 3:
-                        res_list = res_list[:-3]
+                    # Append the answer to the list
+                    qa_list.append(f"answer@{full_reply_content}")
 
-                    response = ';'.join(res_list)                    
+                    # Only keep the latest 6 elements (3 questions and 3 answers)
+                    if len(qa_list) > 6:
+                        qa_list = qa_list[-6:]
 
-                    response =  response + "Question: " + data + "#\n" + "Answer: "  +full_reply_content + ";#\n\n" 
-
-                    
-                    print("Question: " + data)
-                    print("Answer: "  +full_reply_content)
-
-                    # response = ";\n".join(res_list)
-
+                    print("qa_list", qa_list)
+                    response = "$".join(qa_list)
                     await manager.send_text(response, websocket)
-                    res = []
-                
             except WebSocketDisconnect:
                 manager.disconnect(websocket)
                 break
@@ -103,6 +101,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 break
     finally:
         manager.disconnect(websocket)
+
 
 # api to acces htmlpage call voice.html
 @app.get("/")

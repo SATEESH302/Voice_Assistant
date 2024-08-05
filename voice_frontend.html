@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,7 +47,8 @@
             cursor: pointer;
             border-radius: 5px;
             transition: background-color 0.3s ease;
-            margin-top: 10px; /* Adjust margin to position the button below the heading */
+            margin-top: 10px;
+            /* Adjust margin to position the button below the heading */
         }
 
         #startButton:hover {
@@ -69,14 +71,16 @@
             display: block;
             align-items: left;
             justify-content: center;
-            margin-top: 100px; /* Adjust margin to position the status below the heading */
+            margin-top: 100px;
+            /* Adjust margin to position the status below the heading */
         }
     </style>
 </head>
+
 <body>
     <div class="hcontainer">
-        <h1>Interview Assist   <button id="startButton">Start Continuous Recognition</button></h1>
-   
+        <h1>Interview Assist <button id="startButton">Start Continuous Recognition</button></h1>
+
     </div>
     <p id="status">Click the button to start speech recognition.</p>
 
@@ -175,28 +179,28 @@
         }
 
         function displayText(text) {
-    // console.log('received', text);
-    // split this text based on # and make it bold and normal as alternate
-    let textArray = text.split('#');
-    // let statusContainer = document.getElementById('status-container');
-    // status.innerHTML = ''; // Clear the container
-    text_final = '';
+            // console.log('received', text);
+            // split this text based on # and make it bold and normal as alternate
+            let textArray = text.split('$');
+            // let statusContainer = document.getElementById('status-container');
+            // status.innerHTML = ''; // Clear the container
+            text_final = '';
 
-    for (let i = 0; i < textArray.length; i++) {
-        let lineElement = document.createElement('div');
-        if (i % 2 === 0) {
-            // lineElement.innerHTML = `<h4>${textArray[i]}</h4>`;
-            tex = `<h4>${textArray[i]}</h4 >`;
-        } else {
-            // lineElement.innerHTML = `<h5>${textArray[i]}</h5>`;
-            tex = `<h5>${textArray[i]}</h5>`;
+            for (let i = 0; i < textArray.length; i++) {
+                let lineElement = document.createElement('div');
+                if (i % 2 === 0) {
+                    // lineElement.innerHTML = `<h4>${textArray[i]}</h4>`;
+                    tex = `<h4>${textArray[i]}</h4 >`;
+                } else {
+                    // lineElement.innerHTML = `<h5>${textArray[i]}</h5>`;
+                    tex = `<h5>${textArray[i]}</h5>`;
+                }
+                text_final = text_final + tex;
+                // status.appendChild(lineElement);
+
+            }
+            status.innerHTML = text_final;
         }
-        text_final = text_final + tex;
-        // status.appendChild(lineElement);
-
-    }
-    status.innerHTML = text_final;
-}
 
         startButton.onclick = () => {
             ws = new WebSocket('wss://aide-3ai.com/ws');
@@ -218,4 +222,5 @@
         };
     </script>
 </body>
+
 </html>
