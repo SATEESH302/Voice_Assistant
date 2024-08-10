@@ -88,94 +88,74 @@
         const startButton = document.getElementById('startButton');
         const status = document.getElementById('status');
         let ws;
-        let recognition;
         let isRecognitionActive = false;
         let recognitionTimeout;
 
-        function startRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
+        if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                
+                const SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+                var recognition = new SpeechRecognition();
+
                 recognition.continuous = true;
+
+                // Do we want interim results or not (true means yes)
                 recognition.interimResults = false;
 
-                recognition.onstart = () => {
-                    const timestamp = new Date().toLocaleString();
-                    console.log('started', timestamp);
-                    // status.innerText = 'Speech recognition is on. Speak into the microphone.';
-                    isRecognitionActive = true;
+                // Triggered on start of Voice Recognition attempt
+                recognition.onstart = function() {
 
-                    // Set a timeout to stop recognition after 5 minutes
-                    recognitionTimeout = setTimeout(() => {
-                        stopRecognition();
-                    }, 1 * 60 * 1000); // 5 minutes in milliseconds
-                };
+                parsingInProgress = true;
+                    
+                }
+                var t; var inspeech=false;
 
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
+                recognition.onresult = function(event) {
+                    t = event.timeStamp;
+                    inspeech=true;
+                    for (var i = event.resultIndex; i < event.results.length; ++i) {
 
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        // Pick up the command string
+                        command = event.results[i][0].transcript ;
+
+                        // If the latest command is different from the previous then only send to server
+                        
+                        
                         if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        } else {
-                            interimTranscript += event.results[i][0].transcript;
-                        }
+                            var playstring =  "<font color='gray'><i>command: '" + event.results[i][0].transcript+ "'. </i></font><br>" ;
+                            textSpan.innerHTML=playstring;
+                            
+                            socket.emit('command', event.results[i][0].transcript); 
+
+                        }   
+                        // Ensure that the command is stored for comparison against the
+                        // the next command.
+                        lastCommand = command;
+                        
                     }
+                    inspeech=false;
+                    
+                }
+                    // Triggered on parsing error
+                    recognition.onerror = function(event) {
+                    // Report error with text code and error image
+                    errorReport.innerHTML = "Error Code: " + event.error;
+                    alert("speech error"); 
+                }
 
-                    // stop text-to-speech
-                    window.speechSynthesis.cancel();
+                    // Triggered on parsing end
+                    recognition.onend = function(event) {
+                    recognition.start();
 
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(finalTranscript || interimTranscript);
-                        console.log('sending', finalTranscript || interimTranscript);
-                    } else {
-                        console.error('WebSocket is not open.');
-                    }
-                };
+                }
 
-                recognition.onerror = (event) => {
-                    status.innerText = 'Speech recognition error: ' + event.error;
-                    isRecognitionActive = false;
-                    clearTimeout(recognitionTimeout);
-                    // Restart the recognition on error
-                    setTimeout(() => {
-                        if (!isRecognitionActive) {
-                            startRecognition();
-                        }
-                    }, 1000);
-                };
-
-                recognition.onend = () => {
-                    const timestamp = new Date().toLocaleString();
-                    console.log('ended', timestamp);
-                    isRecognitionActive = false;
-                    clearTimeout(recognitionTimeout);
-                    // Restart the recognition if it stopped unexpectedly
-                    setTimeout(() => {
-                        if (!isRecognitionActive) {
-                            startRecognition();
-                        }
-                    }, 1000); // Restart after 1 second
-                };
-
-                recognition.start();
-            } else {
-                status.innerText = 'Your browser does not support Web Speech API.';
             }
-        }
 
-        function stopRecognition() {
-            if (recognition) {
-                recognition.stop();
-                // status.innerText = 'Speech recognition stopped after 5 minutes.';
-                isRecognitionActive = false;
-                clearTimeout(recognitionTimeout);
+        setInterval(resetVoiceRecog, 5000);
+
+        function resetVoiceRecog() {
+        if(inspeech==false){ 
+            recognition.stop();
             }
-        }
-
-        function speakText(text) {
-            let speech = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(speech);
         }
 
         function displayText(text) {
