@@ -15,29 +15,6 @@ os.environ["OPENAI_API_KEY"] = open_ai_key  # OPENAI_API_KEY
 
 client = openai.OpenAI()
 
-# record the time before the request is sent
-start_time = time.time()
-
-
-def call_open_api(message):
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a assistance named Bluu , A asistance from scalebuildAI , you help people to find the best product for them , Scalebuild ios a software company",
-            },
-            # add 10 last messages history here
-            {"role": "user", "content": message},
-        ],
-        temperature=0,
-        stream=True,  # again, we set stream=True
-    )
-
-    return completion
-    # create variables to collect the stream of chunks
-
-
 class ConnectionManager:
     def __init__(self):
         self.active_connections = []

@@ -101,13 +101,7 @@
                 recognition.onstart = () => {
                     const timestamp = new Date().toLocaleString();
                     console.log('started', timestamp);
-                    // status.innerText = 'Speech recognition is on. Speak into the microphone.';
                     isRecognitionActive = true;
-
-                    // Set a timeout to stop recognition after 5 minutes
-                    recognitionTimeout = setTimeout(() => {
-                        stopRecognition();
-                    }, 1 * 60 * 1000); // 5 minutes in milliseconds
                 };
 
                 recognition.onresult = (event) => {
@@ -142,7 +136,7 @@
                         if (!isRecognitionActive) {
                             startRecognition();
                         }
-                    }, 1000);
+                    }, 0.1);
                 };
 
                 recognition.onend = () => {
@@ -155,27 +149,13 @@
                         if (!isRecognitionActive) {
                             startRecognition();
                         }
-                    }, 1000); // Restart after 1 second
+                    }, 0.1); // Restart after 1 second
                 };
 
                 recognition.start();
             } else {
                 status.innerText = 'Your browser does not support Web Speech API.';
             }
-        }
-
-        function stopRecognition() {
-            if (recognition) {
-                recognition.stop();
-                // status.innerText = 'Speech recognition stopped after 5 minutes.';
-                isRecognitionActive = false;
-                clearTimeout(recognitionTimeout);
-            }
-        }
-
-        function speakText(text) {
-            let speech = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(speech);
         }
 
         function displayText(text) {
