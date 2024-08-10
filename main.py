@@ -85,3 +85,7 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/")
 async def get():
     return FileResponse("voice_frontend.html")
+
+@app.get("/script.js")
+async def get_js():
+    return FileResponse("script.js")
