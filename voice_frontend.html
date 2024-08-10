@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Assistant</title>
+    <title>Interview Assistant</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,6 +41,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            margin-right: 30px;
         }
         #startButton {
             background-color: #4CAF50; /* Green background */
@@ -49,6 +50,7 @@
         #stopButton {
             background-color: #f44336; /* Red background */
             color: white;
+            display: none; /* Hide stop button initially */
         }
         button:hover {
             opacity: 0.9;
@@ -72,9 +74,10 @@
             border: 1px solid #ccc;
             background-color: #ffffff; /* White background */
             border-radius: 5px;
-            width: 80%;
+            width: 90%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 16px;
+            text-align: left;
             color: #333333; /* Dark grey text */
             box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
         }
@@ -92,135 +95,143 @@
 </head>
 <body>
     <header>
-        <h1>Voice Assistant</h1>
+        <h1>Interview Assistant</h1>
         <div class="buttons">
             <button id="startButton" onclick="startRecognition()">Start Recognition</button>
             <button id="stopButton" onclick="stopRecognition()">Stop Recognition</button>
         </div>
     </header>
-    <p id="status"></p>
+    <p id="status">Click Start Recognition Button to start recording...</p>
+
     <script>
         const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
         const status = document.getElementById('status');
         let ws;
-        let recognition;
         let isRecognitionActive = false;
-        let recognitionTimeout;
+
+        if (window.hasOwnProperty('webkitSpeechRecognition')) {
+            const SpeechRecognition = webkitSpeechRecognition;
+            var recognition = new SpeechRecognition();
+
+            recognition.continuous = true;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                isRecognitionActive = true;
+                status.innerText = 'Speech recognition active.';
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                // stop text-to-speech
+                window.speechSynthesis.cancel();
+
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(finalTranscript || interimTranscript);
+                    console.log('sending', finalTranscript || interimTranscript);
+                } else {
+                    console.error('WebSocket is not open.');
+                }
+
+                // Update status with question and answer
+                // status.innerText = `Question: ${finalTranscript || interimTranscript}\nAnswer: Processing...`;
+            };
+
+            recognition.onerror = function(event) {
+                status.innerText = 'Speech recognition error: ' + event.error;
+                isRecognitionActive = false;
+            };
+
+            recognition.onend = function() {
+                const timestamp = new Date().toLocaleString();
+                console.log('ended', timestamp);
+                isRecognitionActive = false;
+            };
+        } else {
+            status.innerText = 'Your browser does not support Web Speech API.';
+        }
 
         function startRecognition() {
-            if ('webkitSpeechRecognition' in window) {
-                recognition = new webkitSpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = false;
-
-                recognition.onstart = () => {
-                    const timestamp = new Date().toLocaleString();
-                    console.log('started', timestamp);
-                    isRecognitionActive = true;
-                };
-
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
-
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i][0].transcript;
-                        } else {
-                            interimTranscript += event.results[i][0].transcript;
-                        }
-                    }
-
-                    // stop text-to-speech
-                    window.speechSynthesis.cancel();
-
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(finalTranscript || interimTranscript);
-                        console.log('sending', finalTranscript || interimTranscript);
-                    } else {
-                        console.error('WebSocket is not open.');
-                    }
-                };
-
-                recognition.onerror = (event) => {
-                    status.innerText = 'Speech recognition error: ' + event.error;
-                    isRecognitionActive = false;
-                    clearTimeout(recognitionTimeout);
-                    // Restart the recognition on error
-                    setTimeout(() => {
-                        if (!isRecognitionActive) {
-                            startRecognition();
-                        }
-                    }, 0.1);
-                };
-
-                recognition.onend = () => {
-                    const timestamp = new Date().toLocaleString();
-                    console.log('ended', timestamp);
-                    isRecognitionActive = false;
-                    clearTimeout(recognitionTimeout);
-                    // Restart the recognition if it stopped unexpectedly
-                    setTimeout(() => {
-                        if (!isRecognitionActive) {
-                            startRecognition();
-                        }
-                    }, 0.1); // Restart after 1 second
-                };
-
+            if (recognition && !isRecognitionActive) {
                 recognition.start();
-            } else {
-                status.innerText = 'Your browser does not support Web Speech API.';
+                startButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
             }
         }
+
         function stopRecognition() {
-            if (recognition) {
+            if (recognition && isRecognitionActive) {
                 recognition.stop();
+                startButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
             }
         }
+
+        // WebSocket connection setup
+        ws = new WebSocket('ws://127.0.0.1:8000/ws');
+        ws.onopen = () => {
+            console.log('WebSocket connection opened.');
+        };
+        ws.onmessage = (event) => {
+            // speakText(event.data);
+            displayText(event.data);    
+        };
+        ws.onclose = () => {
+            console.log('WebSocket connection closed.');
+        };
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
 
         function displayText(text) {
-            // console.log('received', text);
-            // split this text based on # and make it bold and normal as alternate
+            // Function to display text received from WebSocket
+            // status.innerHTML = `${text}`;
+            // split the text based on $ and assign even H1 for even index and H2 for odd index
+            status.innerHTML = '';
+
             let textArray = text.split('$');
-            // let statusContainer = document.getElementById('status-container');
-            // status.innerHTML = ''; // Clear the container
-            text_final = '';
-
+            let qaBox = document.createElement('div');
+            qaBox.classList.add('qa-box');
+            let ul = document.createElement('ul');
             for (let i = 0; i < textArray.length; i++) {
-                let lineElement = document.createElement('div');
+                let li = document.createElement('li');
+                let strong = document.createElement('strong');
+                strong.innerText = i % 2 === 0 ? 'Question: ' : 'Answer: ';
+                strong.style.fontSize = '22px'; 
+                li.appendChild(strong);
+                let textNode = document.createTextNode(textArray[i]);
+                let span = document.createElement('span');
+                span.style.fontSize = '22px'; // Set font size for text elements
+                span.appendChild(textNode);
+                li.appendChild(span);
+
+                // Add a new line after each question
+                // Add a new line after each question
                 if (i % 2 === 0) {
-                    // lineElement.innerHTML = `<h4>${textArray[i]}</h4>`;
-                    tex = `<h4>${textArray[i]}</h4 >`;
+                    li.appendChild(document.createElement('br'));
                 } else {
-                    // lineElement.innerHTML = `<h5>${textArray[i]}</h5>`;
-                    tex = `<h5>${textArray[i]}</h5>`;
+                    // Add double block (two <br> elements) after each answer
+                    li.appendChild(document.createElement('br'));
+                    li.appendChild(document.createElement('br'));
                 }
-                text_final = text_final + tex;
-                // status.appendChild(lineElement);
-
+                ul.appendChild(li);
             }
-            status.innerHTML = text_final;
+            qaBox.appendChild(ul);
+            status.appendChild(qaBox);
+
+
         }
-
-        startButton.onclick = () => {
-            ws = new WebSocket('wss://aide-3ai.com/ws');
-
-            ws.onopen = () => {
-                console.log('WebSocket connection opened.');
-                startRecognition();
-            };
-            ws.onmessage = (event) => {
-                // speakText(event.data);
-                displayText(event.data);    
-            };
-            ws.onclose = () => {
-                console.log('WebSocket connection closed.');
-            };
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
-        };
     </script>
 </body>
-
 </html>

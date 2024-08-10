@@ -53,14 +53,15 @@ async def websocket_endpoint(websocket: WebSocket):
                 res = get_answer_for_question(data)
 
                 # Append the question to the list
-                qa_list.append(f"Question#{data}")
+                # qa_list.append(f"{data}")
 
                 if len(res) > 0:
                     message = [m for m in res if m is not None]
                     full_reply_content = "".join([m for m in message])
 
                     # Append the answer to the list
-                    qa_list.append(f"answer@{full_reply_content}")
+                    qa_list.append(f"{data}")
+                    qa_list.append(f"{full_reply_content}")
 
                     # Only keep the latest 6 elements (3 questions and 3 answers)
                     if len(qa_list) > 6:

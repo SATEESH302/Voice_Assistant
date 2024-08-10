@@ -2,6 +2,7 @@ from openai import OpenAI
 import os
 import openai
 from constants import open_ai_key
+import re
 # personal ::
 os.environ["OPENAI_API_KEY"] = (
     open_ai_key
@@ -46,24 +47,24 @@ def extract_question_from_text(text):
 
     final_prompt = """
         ### Role:
-        You are an advanced language model trained to assist in identifying and extracting specific types of information from text. Your task is to identify questions from a given transcript of an interview discussion.
+        You are an advanced language model trained to assist in identifying and extracting specific types of information from text. Your task is to identify technical interview questions only from a given transcript of an interview discussion.
 
         ### Task:
-        Identify all questions present in a transcript of an interview discussion. 
-        The goal is to isolate and extract the sentences that are structured as questions.
+        Identify all the techincal interview questions present in a transcript of an interview discussion. 
+        The goal is to isolate and extract the sentences that are structured as  techincal interview questions.
 
         ### Context:
-        In interviews, participants often ask questions to gather information, clarify points, or prompt further discussion. These questions can range from direct queries to more nuanced or implied questions. Identifying these questions can be crucial for analyzing the interview content and understanding the flow of conversation.
+        In interviews, participants often ask questions to gather information, clarify points, or prompt further discussion. These questions can range from direct queries to more nuanced or implied questions. Identifying these  techincal interview questions can be crucial for analyzing the interview content and understanding the flow of conversation.
 
         ### Guidelines:
-        1. **Focus on Questions:** Only identify and extract sentences that are structured as questions.
+        1. **Focus on Questions:** Only identify and extract sentences that are structured as  techincal interview questions.
         2. **Question Indicators:** Look for typical question indicators such as:
             - Question marks (?)
             - any difference related to questions
             - Interrogative words (who, what, when, where, why, how)
             - Phrasing that implies a question even without explicit indicators (e.g., "Can you explain...")
             - Note:Dont give general questions like "How are you?" or "What is your name?" Give only the technical questions like what is transformers etc.
-            - If there are no questions present in the text, please give the output as "No questions present in the text."
+            - If there are No Technical questions present in the text, please give the output as "No Technical questions present in the text."
                 - Dont add any extra text or ask any questions. Only give the required output.
                 - Give only the text present in output. Do not give any explanation or any other text. 
         3. **Ignore Statements:** Do not include statements, exclamations, or commands that do not serve as questions.
@@ -73,8 +74,7 @@ def extract_question_from_text(text):
         ### Examples:
         **Example 1:**
         - **Input:**
-        Can you tell me about Transformers? Sure, I worked at XYZ Corp for five years as a software developer.
-        What were your main responsibilities there?I was responsible for developing and maintaining web applications.
+        Can you tell me about Transformers? 
 
         - **Output:**
         Can you tell me about Transformers?
@@ -82,7 +82,6 @@ def extract_question_from_text(text):
         **Example 2:**
         - **Input:**
         I see that you have a degree in computer science.
-        It provided a strong foundation in programming and problem-solving skills.That's great. 
         Explain about pandas?
 
         - **Output:**
@@ -90,17 +89,17 @@ def extract_question_from_text(text):
 
         **Example 3:**
         - **Input:**
-        Hi How are you? I am good. What is your name? My name is John. What is your age? I am 25 years old.
+        Hi How are you?  What is your name?  What is your age? 
 
         - **Output:**
-        No questions present in the text.
+        No Technical questions present in the text.
 
         **Example 4:**
         - **Input:**
         and is a great
 
         - **Output:**
-        No questions present in the text.
+        No Technical questions present in the text.
 
         ### Chain of Thought:
         1. **Identify Sentences:** Break down the transcript into individual sentences.
@@ -126,11 +125,20 @@ def get_answer_for_question(text):
     # )
     print("text from audio :", text)
 
+    # if there are less than 3 words in the text then return empty string
+    if len(text.split()) < 3:
+        return ""
 
     res = extract_question_from_text(text)
+    lower_res = res.lower()
     print("Question from Text: ", res)
-    if res == "No questions present in the text.":
+    if res.lower() == "".lower():
         return ""
+    
+    # use regular expression to find the No and Technical and questionswords in "No Technical questions present in the text" in res
+    if re.search("no", lower_res) and re.search("technical", lower_res) and re.search("question", lower_res):
+        return ""
+    
     
         # final_prompt = """I'm preparing for a job interview and would like some help answering a potential interview question. 
         # Please provide a detailed response and include your chain of thought as you work through the answer.
