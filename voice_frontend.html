@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f7f9fc; /* Light grey background */
+            background-color: #f7f9fc;
+            /* Light grey background */
             margin: 0;
             display: flex;
             flex-direction: column;
@@ -15,26 +17,32 @@
             justify-content: flex-start;
             height: 100vh;
         }
+
         header {
             width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            background-color: #ffffff; /* White background for header */
+            background-color: #ffffff;
+            /* White background for header */
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
             left: 0;
         }
+
         h1 {
             margin: 0;
-            color: #333333; /* Dark grey text */
+            color: #333333;
+            /* Dark grey text */
         }
+
         .buttons {
             display: flex;
             gap: 10px;
         }
+
         button {
             padding: 10px 20px;
             border: none;
@@ -43,65 +51,90 @@
             font-size: 16px;
             margin-right: 30px;
         }
+
         #startButton {
-            background-color: #4CAF50; /* Green background */
+            background-color: #4CAF50;
+            /* Green background */
             color: white;
         }
+
         #stopButton {
-            background-color: #f44336; /* Red background */
+            background-color: #f44336;
+            /* Red background */
             color: white;
-            display: none; /* Hide stop button initially */
+            display: none;
+            /* Hide stop button initially */
         }
+
         button:hover {
             opacity: 0.9;
         }
+
         #status {
-            margin-top: 60px; /* To avoid overlap with the fixed header */
+            margin-top: 60px;
+            /* To avoid overlap with the fixed header */
             padding: 10px;
             border: 1px solid #ccc;
-            background-color: #ffffff; /* White background */
+            background-color: #ffffff;
+            /* White background */
             border-radius: 5px;
             width: 100%;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 18px;
-            color: #333333; /* Dark grey text */
-            box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+            color: #333333;
+            /* Dark grey text */
+            box-sizing: border-box;
+            /* Ensure padding and border are included in the element's total width and height */
         }
+
         .qa-box {
             margin: 20px auto;
             padding: 20px;
             border: 1px solid #ccc;
-            background-color: #ffffff; /* White background */
+            background-color: #ffffff;
+            /* White background */
             border-radius: 5px;
             width: 90%;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 16px;
             text-align: left;
-            color: #333333; /* Dark grey text */
-            box-sizing: border-box; /* Ensure padding and border are included in the element's total width and height */
+            color: #333333;
+            /* Dark grey text */
+            box-sizing: border-box;
+            /* Ensure padding and border are included in the element's total width and height */
         }
+
         .qa-box ul {
             list-style-type: none;
             padding: 0;
         }
+
         .qa-box li {
             margin-bottom: 10px;
         }
+
         .qa-box strong {
-            color: #000000; /* Black text for strong elements */
+            color: #000000;
+            /* Black text for strong elements */
         }
     </style>
 </head>
-<body>
-    <div class="hcontainer">
-        <h1>Interview Assist <button id="startButton">Start Continuous Recognition</button></h1>
 
-    </div>
+<body>
+    <header>
+        <h1>Interview Assist </h1>
+        <div class="buttons">
+            <button id="startButton">Start</button>
+            <button id="stopButton">Stop</button>
+
+
+    </header>
     <p id="status">Click the button to start speech recognition.</p>
 
     <script>
         const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
         const status = document.getElementById('status');
         let ws;
         let recognition;
@@ -117,7 +150,7 @@
                 recognition.onstart = () => {
                     const timestamp = new Date().toLocaleString();
                     console.log('started', timestamp);
-                    // status.innerText = 'Speech recognition is on. Speak into the microphone.';
+                    status.innerText = 'Speech recognition is on. Speak into the microphone.';
                     isRecognitionActive = true;
                 };
 
@@ -176,31 +209,46 @@
         }
 
         function displayText(text) {
-            // console.log('received', text);
-            // split this text based on # and make it bold and normal as alternate
+            // Function to display text received from WebSocket
+            // status.innerHTML = `${text}`;
+            // split the text based on $ and assign even H1 for even index and H2 for odd index
+            status.innerHTML = '';
+
             let textArray = text.split('$');
-            // let statusContainer = document.getElementById('status-container');
-            // status.innerHTML = ''; // Clear the container
-            text_final = '';
-
+            let qaBox = document.createElement('div');
+            qaBox.classList.add('qa-box');
+            let ul = document.createElement('ul');
             for (let i = 0; i < textArray.length; i++) {
-                let lineElement = document.createElement('div');
+                let li = document.createElement('li');
+                let strong = document.createElement('strong');
+                strong.innerText = i % 2 === 0 ? 'Question: ' : 'Answer: ';
+                strong.style.fontSize = '22px';
+                li.appendChild(strong);
+                let textNode = document.createTextNode(textArray[i]);
+                let span = document.createElement('span');
+                span.style.fontSize = '22px'; // Set font size for text elements
+                span.appendChild(textNode);
+                li.appendChild(span);
+
+                // Add a new line after each question
+                // Add a new line after each question
                 if (i % 2 === 0) {
-                    // lineElement.innerHTML = `<h4>${textArray[i]}</h4>`;
-                    tex = `<h4>${textArray[i]}</h4 >`;
+                    li.appendChild(document.createElement('br'));
                 } else {
-                    // lineElement.innerHTML = `<h5>${textArray[i]}</h5>`;
-                    tex = `<h5>${textArray[i]}</h5>`;
+                    // Add double block (two <br> elements) after each answer
+                    li.appendChild(document.createElement('br'));
+                    li.appendChild(document.createElement('br'));
                 }
-                text_final = text_final + tex;
-                // status.appendChild(lineElement);
-
+                ul.appendChild(li);
             }
-            status.innerHTML = text_final;
-        }
+            qaBox.appendChild(ul);
+            status.appendChild(qaBox);
 
+
+        }
         startButton.onclick = () => {
             ws = new WebSocket('wss://aide-3ai.com/ws');
+            // ws = new WebSocket('ws://127.0.0.1:8000/ws');
             ws.onopen = () => {
                 console.log('WebSocket connection opened.');
                 startRecognition();
@@ -217,4 +265,5 @@
         };
     </script>
 </body>
+
 </html>
