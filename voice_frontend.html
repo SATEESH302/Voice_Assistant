@@ -94,15 +94,148 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>Interview Assistant</h1>
-        <div class="buttons">
-            <button id="startButton" onclick="startRecognition()">Start Recognition</button>
-            <button id="stopButton" onclick="stopRecognition()">Stop Recognition</button>
-        </div>
-    </header>
-    <p id="status">Click Start Recognition Button to start recording...</p>
+    <div class="hcontainer">
+        <h1>Interview Assist <button id="startButton">Start Continuous Recognition</button></h1>
 
-    <script src = "script.js"></script>
+    </div>
+    <p id="status">Click the button to start speech recognition.</p>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const status = document.getElementById('status');
+        let ws;
+        let recognition;
+        let isRecognitionActive = false;
+        let recognitionTimeout;
+
+        function startRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+
+                recognition.onstart = () => {
+                    const timestamp = new Date().toLocaleString();
+                    console.log('started', timestamp);
+                    // status.innerText = 'Speech recognition is on. Speak into the microphone.';
+                    isRecognitionActive = true;
+
+                    // Set a timeout to stop recognition after 5 minutes
+                    recognitionTimeout = setTimeout(() => {
+                        stopRecognition();
+                    }, 1 * 60 * 1000); // 5 minutes in milliseconds
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    // stop text-to-speech
+                    window.speechSynthesis.cancel();
+
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(finalTranscript || interimTranscript);
+                        console.log('sending', finalTranscript || interimTranscript);
+                    } else {
+                        console.error('WebSocket is not open.');
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    status.innerText = 'Speech recognition error: ' + event.error;
+                    isRecognitionActive = false;
+                    clearTimeout(recognitionTimeout);
+                    // Restart the recognition on error
+                    setTimeout(() => {
+                        if (!isRecognitionActive) {
+                            startRecognition();
+                        }
+                    }, 1000);
+                };
+
+                recognition.onend = () => {
+                    const timestamp = new Date().toLocaleString();
+                    console.log('ended', timestamp);
+                    isRecognitionActive = false;
+                    clearTimeout(recognitionTimeout);
+                    // Restart the recognition if it stopped unexpectedly
+                    setTimeout(() => {
+                        if (!isRecognitionActive) {
+                            startRecognition();
+                        }
+                    }, 1000); // Restart after 1 second
+                };
+
+                recognition.start();
+            } else {
+                status.innerText = 'Your browser does not support Web Speech API.';
+            }
+        }
+
+        function stopRecognition() {
+            if (recognition) {
+                recognition.stop();
+                // status.innerText = 'Speech recognition stopped after 5 minutes.';
+                isRecognitionActive = false;
+                clearTimeout(recognitionTimeout);
+            }
+        }
+
+        function speakText(text) {
+            let speech = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(speech);
+        }
+
+        function displayText(text) {
+            // console.log('received', text);
+            // split this text based on # and make it bold and normal as alternate
+            let textArray = text.split('$');
+            // let statusContainer = document.getElementById('status-container');
+            // status.innerHTML = ''; // Clear the container
+            text_final = '';
+
+            for (let i = 0; i < textArray.length; i++) {
+                let lineElement = document.createElement('div');
+                if (i % 2 === 0) {
+                    // lineElement.innerHTML = `<h4>${textArray[i]}</h4>`;
+                    tex = `<h4>${textArray[i]}</h4 >`;
+                } else {
+                    // lineElement.innerHTML = `<h5>${textArray[i]}</h5>`;
+                    tex = `<h5>${textArray[i]}</h5>`;
+                }
+                text_final = text_final + tex;
+                // status.appendChild(lineElement);
+
+            }
+            status.innerHTML = text_final;
+        }
+
+        startButton.onclick = () => {
+            ws = new WebSocket('wss://aide-3ai.com/ws');
+
+            ws.onopen = () => {
+                console.log('WebSocket connection opened.');
+                startRecognition();
+            };
+            ws.onmessage = (event) => {
+                // speakText(event.data);
+                displayText(event.data);
+            };
+            ws.onclose = () => {
+                console.log('WebSocket connection closed.');
+            };
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        };
+    </script>
 </body>
 </html>
