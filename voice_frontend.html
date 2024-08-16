@@ -123,7 +123,7 @@
 
 <body>
     <header>
-        <h1>Interview Assist </h1>
+        <h1>Voice Assist </h1>
         <div class="buttons">
             <button id="startButton">Start</button>
             <button id="stopButton">Stop</button>
@@ -134,7 +134,15 @@
 
     <script>
         const startButton = document.getElementById('startButton');
+        document.getElementById('startButton').addEventListener('click', function () {
+            document.getElementById('startButton').style.display = 'none';
+            document.getElementById('stopButton').style.display = 'inline-block';
+        });
         const stopButton = document.getElementById('stopButton');
+        document.getElementById('stopButton').addEventListener('click', function () {
+            document.getElementById('stopButton').style.display = 'none';
+            document.getElementById('startButton').style.display = 'inline-block';
+        });
         const status = document.getElementById('status');
         let ws;
         let recognition;
@@ -144,6 +152,7 @@
         function startRecognition() {
             if ('webkitSpeechRecognition' in window) {
                 recognition = new webkitSpeechRecognition();
+                console.log(recognition, 'recognition:')
                 recognition.continuous = true;
                 recognition.interimResults = false;
 
@@ -153,7 +162,6 @@
                     status.innerText = 'Speech recognition is on. Speak into the microphone.';
                     isRecognitionActive = true;
                 };
-
                 recognition.onresult = (event) => {
                     let interimTranscript = '';
                     let finalTranscript = '';
@@ -165,6 +173,7 @@
                             interimTranscript += event.results[i][0].transcript;
                         }
                     }
+
 
                     // stop text-to-speech
                     window.speechSynthesis.cancel();
@@ -182,24 +191,25 @@
                     isRecognitionActive = false;
                     clearTimeout(recognitionTimeout);
                     // Restart the recognition on error
-                    setTimeout(() => {
-                        if (!isRecognitionActive) {
-                            startRecognition();
-                        }
-                    }, 0.1);
+                    // setTimeout(() => {
+                    //     if (!isRecognitionActive) {
+                    //         startRecognition();
+                    //     }
+                    // }, 0.1);
                 };
 
                 recognition.onend = () => {
+                    recognition.start();
                     const timestamp = new Date().toLocaleString();
                     console.log('ended', timestamp);
                     isRecognitionActive = false;
                     clearTimeout(recognitionTimeout);
                     // Restart the recognition if it stopped unexpectedly
-                    setTimeout(() => {
-                        if (!isRecognitionActive) {
-                            startRecognition();
-                        }
-                    }, 0.1); // Restart after 1 second
+                    // setTimeout(() => {
+                    //     if (!isRecognitionActive) {
+                    //         startRecognition();
+                    //     }
+                    // }, 0.1); // Restart after 1 second
                 };
 
                 recognition.start();
@@ -247,10 +257,11 @@
 
         }
         startButton.onclick = () => {
-            ws = new WebSocket('wss://aide-3ai.com/ws');
-            // ws = new WebSocket('ws://127.0.0.1:8000/ws');
+            // ws = new WebSocket('wss://aide-3ai.com/ws');
+            ws = new WebSocket('ws://127.0.0.1:8000/ws');
             ws.onopen = () => {
                 console.log('WebSocket connection opened.');
+
                 startRecognition();
             };
             ws.onmessage = (event) => {
@@ -258,6 +269,8 @@
             };
             ws.onclose = () => {
                 console.log('WebSocket connection closed.');
+                startRecognition();
+
             };
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
