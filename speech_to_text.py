@@ -12,6 +12,68 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
 
+messages = None
+
+def initialize_messages():
+    global messages
+    if messages is None: 
+        Chat_System_Message = """
+                ### Role:
+                You are an advanced language model trained to assist in providing concise and casual answers to interview questions. Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+
+                ### Task:
+                Answer each interview question provided in the transcript. Your answers should be straightforward, using casual language that is easy to understand. Keep the answers short, ideally 3-4 sentences.
+
+                ### Context:
+                In interviews, concise and clear answers are valued. The goal is to provide responses that are easy to understand, avoid jargon, and sound natural in a conversational setting.
+
+                ### Guidelines:
+                1. **Simplicity:** Use simple language and avoid technical jargon or complex definitions.
+                2. **Casual Tone:** Maintain a conversational tone, as if you are chatting with a friend.
+                3. **Brevity:** Keep your responses short, ideally 3-4 sentences.
+                4. **Clarity:** Ensure that your answers are clear and directly address the question asked.
+                5. **Avoid Book Definitions:** Provide explanations in your own words, avoiding textbook-like definitions.
+                6. Dont give any extra text. Only give the required answer
+
+                ### Examples:
+                **Example 1:**
+                - **Question:** Can you explain what RESTful APIs are?
+                - **Answer:** Sure! RESTful APIs are a way for different software applications to talk to each other over the web. They use standard HTTP methods like GET and POST. It's like giving commands and getting responses.
+
+                ### Chain of Thought:
+                1. **Identify Questions:** Break down the transcript to identify each interview question.
+                2. **Formulate Answers:** Formulate simple, casual answers for each question, keeping in mind the guidelines.
+                3. **Ensure Brevity:** Make sure the answers are limited to 3-4 sentences.
+                4. **Review for Clarity:** Review the answers to ensure they are clear and easy to understand.
+
+                Note: Only output 3-4 sentences for each question. Do not provide any additional information or explanations.
+
+                ### Prompt:
+                Given the following interview transcript, answer each question in simple, casual terms, 
+                limiting your responses to 3-4 sentences for the given user question
+
+                """
+
+
+        messages=[
+            {"role": "system", "content": Chat_System_Message}
+            ]
+
+def update_chat(messages, role, content):
+  messages.append({"role": role, "content": content})
+  return messages
+
+def get_chatgpt_response(messages):
+  response = client.chat.completions.create(
+  model="gpt-4o",
+  temperature=0.1,
+  seed=42,
+  messages=messages
+)
+  return response.choices[0].message.content
+
+
+
 def call_openai_api(final_prompt):
     response = client.chat.completions.create(
         model="gpt-4o",  # "gpt-3.5-turbo-1106",
@@ -36,14 +98,6 @@ def call_openai_api(final_prompt):
 
 
 def extract_question_from_text(text):
-    # final_prompt = """for the given text  in the backtick```{input}```,
-    # please extract question in the given context and 
-    # please do not form new question give only the question present in context.
-
-    # please give only output do not give any explanation 
-    # apply chain of thought """.format(
-    #     input=text
-    # )
 
     final_prompt = """
         ### Role:
@@ -119,10 +173,7 @@ def extract_question_from_text(text):
 
 
 def get_answer_for_question(text):
-    # audio_file = open(file_path, "rb")
-    # transcription = client.audio.transcriptions.create(
-    #     model="whisper-1", file=audio_file
-    # )
+    global messages
     print("text from audio :", text)
 
     # if there are less than 3 words in the text then return empty string
@@ -139,63 +190,15 @@ def get_answer_for_question(text):
     if re.search("no", lower_res) and re.search("technical", lower_res) and re.search("question", lower_res):
         return ""
     
+    # Initialize messages if not already done
+    if messages is None:
+        initialize_messages()
     
-        # final_prompt = """I'm preparing for a job interview and would like some help answering a potential interview question. 
-        # Please provide a detailed response and include your chain of thought as you work through the answer.
-        # Points to remeber before answering 
-        # 1) Understand the Question
-        # 2) Identify Relevant Knowledge related to answer
-        # 3) Structure the Answer and organize the response for clarity and impact
-        # 4) Give answer in simple terms so that interviewer can understand easily
-        # 5) Dont give any extra text. Only give the required answer
-        # 6) Dont give any book definitions. Make it in simple and explainable words. It has to look like a normal conversation
-        # for the given question in the backtick```{input}```,
-        # please provide the answer  in three lines and do not give any explanation """.format(
-        #     input=res
-        # )
-    final_prompt = """
-        ### Role:
-        You are an advanced language model trained to assist in providing concise and casual answers to interview questions. Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
 
-        ### Task:
-        Answer each interview question provided in the transcript. Your answers should be straightforward, using casual language that is easy to understand. Keep the answers short, ideally 3-4 sentences.
-
-        ### Context:
-        In interviews, concise and clear answers are valued. The goal is to provide responses that are easy to understand, avoid jargon, and sound natural in a conversational setting.
-
-        ### Guidelines:
-        1. **Simplicity:** Use simple language and avoid technical jargon or complex definitions.
-        2. **Casual Tone:** Maintain a conversational tone, as if you are chatting with a friend.
-        3. **Brevity:** Keep your responses short, ideally 3-4 sentences.
-        4. **Clarity:** Ensure that your answers are clear and directly address the question asked.
-        5. **Avoid Book Definitions:** Provide explanations in your own words, avoiding textbook-like definitions.
-        6. Dont give any extra text. Only give the required answer
-
-        ### Examples:
-        **Example 1:**
-        - **Question:** Can you explain what RESTful APIs are?
-        - **Answer:** Sure! RESTful APIs are a way for different software applications to talk to each other over the web. They use standard HTTP methods like GET and POST. It's like giving commands and getting responses.
-
-        ### Chain of Thought:
-        1. **Identify Questions:** Break down the transcript to identify each interview question.
-        2. **Formulate Answers:** Formulate simple, casual answers for each question, keeping in mind the guidelines.
-        3. **Ensure Brevity:** Make sure the answers are limited to 3-4 sentences.
-        4. **Review for Clarity:** Review the answers to ensure they are clear and easy to understand.
-
-        Note: Only output 3-4 sentences for each question. Do not provide any additional information or explanations.
-
-        ### Prompt:
-        Given the following interview transcript, answer each question in simple, casual terms, 
-        limiting your responses to 3-4 sentences for the given question in the backtick```{input}```
-
-        """.format(
-        input=res
-    )
-
-    final_res = call_openai_api(final_prompt)
-
-    print("Answer for the questions: ", final_res)
-    # print(final_res.choices[0].message.content)
-    return final_res
+    messages = update_chat(messages, "user", res)
+    chat_response = get_chatgpt_response(messages)
+    messages = update_chat(messages, "assistant", chat_response)
 
 
+    print("Answer for the questions: ", chat_response)
+    return chat_response

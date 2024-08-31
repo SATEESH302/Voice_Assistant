@@ -4,38 +4,17 @@ from fastapi.responses import FileResponse
 import openai
 import time
 import os
-from speech_to_text import get_answer_for_question
+from speech_to_text import get_answer_for_question, initialize_messages, messages
 from constants import open_ai_key
 
 app = FastAPI()
 
 response = ""
+chat_initialization_done = False
 
 os.environ["OPENAI_API_KEY"] = open_ai_key  # OPENAI_API_KEY
 
 client = openai.OpenAI()
-
-# record the time before the request is sent
-start_time = time.time()
-
-
-def call_open_api(message):
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a assistance named Bluu , A asistance from scalebuildAI , you help people to find the best product for them , Scalebuild ios a software company",
-            },
-            # add 10 last messages history here
-            {"role": "user", "content": message},
-        ],
-        temperature=0,
-        stream=True,  # again, we set stream=True
-    )
-
-    return completion
-    # create variables to collect the stream of chunks
 
 
 class ConnectionManager:
@@ -60,6 +39,8 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     global response
+    global chat_initialization_done
+    global messages
     try:
         while True:
             try:
@@ -73,6 +54,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 # Process the data
                 print(f"Received text: {data}")  # Example: print it to the console
+                
+                # Run initialize_messages() only once
+                if not chat_initialization_done:
+                    initialize_messages()
+                    chat_initialization_done = True
+                
+                
                 res = get_answer_for_question(data)
 
                 # Append the question to the list
