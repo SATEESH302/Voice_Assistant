@@ -170,6 +170,26 @@
             width: 90px;
         }
 
+        #jd {
+
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #0c0303;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            /* background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%2216%22 height%3D%2216%22 fill%3D%22%23333%22 viewBox%3D%220 0 16 16%22%3E%3Cpath d%3D%22M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z%22/%3E%3C/svg%3E'); */
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px 16px;
+            margin-left: 10px;
+            border-radius: 10px;
+            padding: 10px;
+            width: 200px;
+        }
+
         #domain:focus {
             border-color: #007bff;
             outline: none;
@@ -216,6 +236,9 @@
             <div class="logo"><a href="#">Interview Assist</a> </div>
             <ul>
                 <li>
+                    <input type="text" id="jd" placeholder="Enter job description">
+                </li>
+                <li>
                     <select name="domain" id="domain">
                         <option value="Data_Science">AI/ML</option>
                         <option value="sap">SAP</option>
@@ -223,6 +246,8 @@
                         <option value="Java">Java</option>
                     </select>
                 </li>
+
+
                 <button id="startButton">Start</button>
                 <button id="stopButton">Stop</button>
                 <button><a href="#">SignIn</a></button>
@@ -232,7 +257,7 @@
     </nav>
 
     <p id="status">Click the button to start speech recognition.</p>
-    <script src = "script.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

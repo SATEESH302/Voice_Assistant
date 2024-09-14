@@ -1,8 +1,15 @@
 const startButton = document.getElementById('startButton');
 var myVar = document.getElementById('domain').value;
+var jd = document.getElementById('jd').value
 document.getElementById('domain').addEventListener('change', function () {
     myVar = this.value;
     console.log(`Selected domain updated to: ${myVar}`);
+
+
+});
+document.getElementById('jd').addEventListener('change', function () {
+    my_jd = this.value;
+    console.log(`Selected jd updated to: ${my_jd}`);
 });
 
 
@@ -22,6 +29,7 @@ let isRecognitionActive = false;
 let recognitionTimeout;
 let restart_status = false
 let reposne_from_ws = ''
+let user_input_sent_status = false
 
 
 
@@ -57,16 +65,27 @@ function startRecognition(selectedValue) {
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 final_text = finalTranscript || interimTranscript;
-                final_text = final_text + '#' + myVar;
-                ws.send(final_text);
-                console.log('sending', final_text);
+                // final_text = final_text + '#' + myVar;
+                if (!user_input_sent_status) {
+                    final_dict = { 'question': final_text, 'domain': myVar, 'jd': my_jd };
+                    user_input_sent_status = true;
+                } else {
+                    final_dict = { 'question': final_text };
+                }
+
+                const final_dict_str = JSON.stringify(final_dict);
+
+                // final_dict_str = JSON.stringify(final_dict_str);
+
+                ws.send(final_dict_str);
+                console.log('sending', final_dict_str);
             } else {
                 console.error('WebSocket is not open.');
             }
         };
 
         recognition.onerror = (event) => {
-            status.innerText = 'Speech recognition error: ' + event.error;
+            // status.innerText = 'Speech recognition error: ' + event.error;
             isRecognitionActive = false;
             clearTimeout(recognitionTimeout);
         };
@@ -124,7 +143,7 @@ function displayText(text) {
 }
 
 startButton.onclick = () => {
-    //ws = new WebSocket('wss://aide-3ai.com/ws');
+    // ws = new WebSocket('wss://aide-3ai.com/ws');
     ws = new WebSocket('ws://127.0.0.1:8000/ws');
     ws.onopen = () => {
         console.log('WebSocket connection opened.');

@@ -6,6 +6,7 @@ import time
 import os
 from speech_to_text import get_answer_for_question, initialize_messages, messages
 from constants import open_ai_key
+import json
 
 app = FastAPI()
 
@@ -54,14 +55,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 # Process the data
                 print(f"Received text: {data}")  # Example: print it to the console
-                
+                data = json.loads(data)
+
                 # Run initialize_messages() only once
                 if not chat_initialization_done:
-                    initialize_messages()
+                    initialize_messages(domain=data["domain"], jd=data["jd"])
                     chat_initialization_done = True
-                
-                
-                res = get_answer_for_question(data)
+
+                res = get_answer_for_question(data["question"])
 
                 # Append the question to the list
                 # qa_list.append(f"{data}")
@@ -71,7 +72,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     full_reply_content = "".join([m for m in message])
 
                     # Append the answer to the list
-                    qa_list.append(f"{data}")
+                    qa_list.append(f'{data["question"]}')
                     qa_list.append(f"{full_reply_content}")
 
                     # Only keep the latest 6 elements (3 questions and 3 answers)
@@ -96,6 +97,7 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/")
 async def get():
     return FileResponse("voice_frontend.html")
+
 
 @app.get("/script.js")
 async def get_js():

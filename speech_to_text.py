@@ -3,10 +3,9 @@ import os
 import openai
 from constants import open_ai_key
 import re
+
 # personal ::
-os.environ["OPENAI_API_KEY"] = (
-    open_ai_key
-)
+os.environ["OPENAI_API_KEY"] = open_ai_key
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
@@ -14,15 +13,49 @@ client = OpenAI()
 
 messages = None
 
-def initialize_messages():
+
+def initialize_messages(domain=None, jd=None):
     global messages
-    if messages is None: 
+    if messages is None:
+        if domain is None and jd is None:
+            role = """You are an advanced language model trained to assist in providing concise 
+                and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript in a simple, 
+                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+                """
+        elif domain is not None and jd is None:
+            role = """You are an advanced language model trained to assist in providing concise 
+                and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript related to domain - {domain} in a simple, 
+                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+                """.format(
+                domain=domain
+            )
+        elif domain is not None and jd is not None:
+            role = """You are an advanced language model trained to assist in providing concise 
+                and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript related to domain - {domain} and
+                job description - {jd} in a simple, 
+                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+                """.format(
+                domain=domain, jd=jd
+            )
+        elif domain is None and jd is not None:
+            role = """You are an advanced language model trained to assist in providing concise 
+                and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript related to job description - {jd} in a simple, 
+                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+                """.format(
+                jd=jd
+            )
         Chat_System_Message = """
                 ### Role:
-                You are an advanced language model trained to assist in providing concise and casual answers to interview questions. Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+                {role}
 
                 ### Task:
-                Answer each interview question provided in the transcript. Your answers should be straightforward, using casual language that is easy to understand. Keep the answers short, ideally 3-4 sentences.
+                Answer each interview question provided in the transcript. 
+                Your answers should be straightforward, using casual language that is easy to understand. 
+                Keep the answers short, ideally 3-4 sentences.
 
                 ### Context:
                 In interviews, concise and clear answers are valued. The goal is to provide responses that are easy to understand, avoid jargon, and sound natural in a conversational setting.
@@ -52,26 +85,23 @@ def initialize_messages():
                 Given the following interview transcript, answer each question in simple, casual terms, 
                 limiting your responses to 3-4 sentences for the given user question
 
-                """
+                """.format(
+            role=role
+        )
 
+        messages = [{"role": "system", "content": Chat_System_Message}]
 
-        messages=[
-            {"role": "system", "content": Chat_System_Message}
-            ]
 
 def update_chat(messages, role, content):
-  messages.append({"role": role, "content": content})
-  return messages
+    messages.append({"role": role, "content": content})
+    return messages
+
 
 def get_chatgpt_response(messages):
-  response = client.chat.completions.create(
-  model="gpt-4o",
-  temperature=0.1,
-  seed=42,
-  messages=messages
-)
-  return response.choices[0].message.content
-
+    response = client.chat.completions.create(
+        model="gpt-4o", temperature=0.1, seed=42, messages=messages
+    )
+    return response.choices[0].message.content
 
 
 def call_openai_api(final_prompt):
@@ -108,7 +138,9 @@ def extract_question_from_text(text):
         The goal is to isolate and extract the sentences that are structured as  techincal interview questions.
 
         ### Context:
-        In interviews, participants often ask questions to gather information, clarify points, or prompt further discussion. These questions can range from direct queries to more nuanced or implied questions. Identifying these  techincal interview questions can be crucial for analyzing the interview content and understanding the flow of conversation.
+        In interviews, participants often ask questions to gather information, clarify points, or prompt further discussion. 
+        These questions can range from direct queries to more nuanced or implied questions. 
+        Identifying these  techincal interview questions can be crucial for analyzing the interview content and understanding the flow of conversation.
 
         ### Guidelines:
         1. **Focus on Questions:** Only identify and extract sentences that are structured as  techincal interview questions.
@@ -116,14 +148,17 @@ def extract_question_from_text(text):
             - Question marks (?)
             - any difference related to questions
             - Interrogative words (who, what, when, where, why, how)
-            - Phrasing that implies a question even without explicit indicators (e.g., "Can you explain...")
+            - Phrasing that implies a question even without explicit indicators (e.g., "Can you explain...", 'give example about previous question'")
             - Note:Dont give general questions like "How are you?" or "What is your name?" Give only the technical questions like what is transformers etc.
             - If there are No Technical questions present in the text, please give the output as "No Technical questions present in the text."
+                - check that sentencte is taking about previous question or not if yes then it is not a technical question otherwise it is not a technical question.
                 - Dont add any extra text or ask any questions. Only give the required output.
                 - Give only the text present in output. Do not give any explanation or any other text. 
         3. **Ignore Statements:** Do not include statements, exclamations, or commands that do not serve as questions.
-        4. **Contextual Awareness:** Be mindful of the context to differentiate between rhetorical questions and genuine inquiries.
+        4. **Contextual Awareness:** Be mindful of the context to differentiate between thetorical questions and genuine inquiries.
         5. **Consistency:** Ensure consistency in the identification process to maintain accuracy.
+
+            
 
         ### Examples:
         **Example 1:**
@@ -155,6 +190,21 @@ def extract_question_from_text(text):
         - **Output:**
         No Technical questions present in the text.
 
+         **Example 5:**
+        - **Input:**
+        give example for the previous question  
+
+        - **Output:**
+        give example for the previous question .
+
+        **Example 6:**
+        - **Input:**
+        give example for the exaplined ones
+
+        - **Output:**
+        give example for the exaplined ones
+        
+
         ### Chain of Thought:
         1. **Identify Sentences:** Break down the transcript into individual sentences.
         2. **Check for Indicators:** Examine each sentence for question indicators such as question marks, interrogative words, and questioning phrasing.
@@ -174,7 +224,7 @@ def extract_question_from_text(text):
 
 def get_answer_for_question(text):
     global messages
-    print("text from audio :", text)
+    # print("text from audio :", text)
 
     # if there are less than 3 words in the text then return empty string
     if len(text.split()) < 3:
@@ -185,20 +235,22 @@ def get_answer_for_question(text):
     print("Question from Text: ", res)
     if res.lower() == "".lower():
         return ""
-    
+
     # use regular expression to find the No and Technical and questionswords in "No Technical questions present in the text" in res
-    if re.search("no", lower_res) and re.search("technical", lower_res) and re.search("question", lower_res):
+    if (
+        re.search("no", lower_res)
+        and re.search("technical", lower_res)
+        and re.search("question", lower_res)
+    ):
         return ""
-    
+
     # Initialize messages if not already done
-    if messages is None:
-        initialize_messages()
-    
+    # if messages is None:
+    #     initialize_messages()
 
     messages = update_chat(messages, "user", res)
     chat_response = get_chatgpt_response(messages)
     messages = update_chat(messages, "assistant", chat_response)
-
 
     print("Answer for the questions: ", chat_response)
     return chat_response
