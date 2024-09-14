@@ -18,25 +18,30 @@ def initialize_messages(domain=None, jd=None):
     global messages
     if messages is None:
         if domain is None and jd is None:
-            role = """You are an advanced language model trained to assist in providing concise 
-                and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript in a simple, 
-                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+            role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
                 """
         elif domain is not None and jd is None:
-            role = """You are an advanced language model trained to assist in providing concise 
-                and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript related to domain - {domain} in a simple, 
-                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+            role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
+                w.r.t the below mentioned Domain
+
+                ### Domain:
+                {domain}
+
                 """.format(
                 domain=domain
             )
         elif domain is not None and jd is not None:
-            role = """You are an advanced language model trained to assist in providing concise 
-                and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript related to domain - {domain} and
-                job description - {jd} in a simple, 
-                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+            role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+                Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
+                w.r.t the below mentioned Domain and Job Description
+
+                ### Domain:
+                {domain}
+
+                ### Job Description:
+                {jd}
                 """.format(
                 domain=domain, jd=jd
             )
@@ -88,6 +93,8 @@ def initialize_messages(domain=None, jd=None):
                 """.format(
             role=role
         )
+
+        print("Chat_System_Message",Chat_System_Message)
 
         messages = [{"role": "system", "content": Chat_System_Message}]
 

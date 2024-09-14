@@ -1,9 +1,14 @@
 const startButton = document.getElementById('startButton');
-var myVar = document.getElementById('domain').value;
-var jd = document.getElementById('jd').value
+const stopButton = document.getElementById('stopButton');
+//var my_domain = document.getElementById('domain').value;
+//var my_jd = document.getElementById('jd').value
+
+var my_jd = null;
+var my_domain = null;
+
 document.getElementById('domain').addEventListener('change', function () {
-    myVar = this.value;
-    console.log(`Selected domain updated to: ${myVar}`);
+    my_domain = this.value;
+    console.log(`Selected domain updated to: ${my_domain}`);
 
 
 });
@@ -17,11 +22,12 @@ document.getElementById('startButton').addEventListener('click', function () {
     document.getElementById('startButton').style.display = 'none';
     document.getElementById('stopButton').style.display = 'inline-block';
 });
-const stopButton = document.getElementById('stopButton');
+
 document.getElementById('stopButton').addEventListener('click', function () {
     document.getElementById('stopButton').style.display = 'none';
     document.getElementById('startButton').style.display = 'inline-block';
 });
+
 let status = document.getElementById('status');
 let ws;
 let recognition;
@@ -33,8 +39,7 @@ let user_input_sent_status = false
 
 
 
-function startRecognition(selectedValue) {
-    console.log(selectedValue, 'selectedValue')
+function startRecognition() {
     if ('webkitSpeechRecognition' in window) {
         recognition = new webkitSpeechRecognition();
         console.log(recognition, 'recognition:')
@@ -65,17 +70,14 @@ function startRecognition(selectedValue) {
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 final_text = finalTranscript || interimTranscript;
-                // final_text = final_text + '#' + myVar;
                 if (!user_input_sent_status) {
-                    final_dict = { 'question': final_text, 'domain': myVar, 'jd': my_jd };
+                    final_dict = { 'question': final_text, 'domain': my_domain, 'jd': my_jd };
                     user_input_sent_status = true;
                 } else {
                     final_dict = { 'question': final_text };
                 }
 
                 const final_dict_str = JSON.stringify(final_dict);
-
-                // final_dict_str = JSON.stringify(final_dict_str);
 
                 ws.send(final_dict_str);
                 console.log('sending', final_dict_str);
@@ -148,7 +150,7 @@ startButton.onclick = () => {
     ws.onopen = () => {
         console.log('WebSocket connection opened.');
 
-        startRecognition(myVar);
+        startRecognition();
     };
     ws.onmessage = (event) => {
         reposne_from_ws = event.data
