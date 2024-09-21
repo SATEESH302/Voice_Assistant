@@ -34,7 +34,7 @@ let recognition;
 let isRecognitionActive = false;
 let recognitionTimeout;
 let restart_status = false
-let reposne_from_ws = ''
+let response_from_ws = ''
 let user_input_sent_status = false
 
 
@@ -93,7 +93,7 @@ function startRecognition() {
         };
 
         recognition.onend = () => {
-            console.log('response from ws:', reposne_from_ws)
+            // console.log('response from ws:', response_from_ws)
             recognition.start();
             const timestamp = new Date().toLocaleString();
             console.log('ended', timestamp);
@@ -109,7 +109,7 @@ function startRecognition() {
 
 function displayText(text) {
     status.innerHTML = '';
-    console.log('text:', text);
+    // console.log('text:', text);
     let textArray = text.split('$');
     let qaBox = document.createElement('div');
     qaBox.classList.add('qa-box');
@@ -153,7 +153,7 @@ startButton.onclick = () => {
         startRecognition();
     };
     ws.onmessage = (event) => {
-        reposne_from_ws = event.data
+        response_from_ws = event.data
         displayText(event.data);
     };
     ws.onclose = () => {

@@ -11,92 +11,90 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
 
-messages = None
-
-
 def initialize_messages(domain=None, jd=None):
-    global messages
-    if messages is None:
-        if domain is None and jd is None:
-            role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
-                """
-        elif domain is not None and jd is None:
-            role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
-                w.r.t the below mentioned Domain
 
-                ### Domain:
-                {domain}
+    if domain is None and jd is None:
+        role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+            Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
+            """     
+    elif domain is not None and jd is None:
+        role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+            Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
+            w.r.t the below mentioned Domain
 
-                """.format(
-                domain=domain
-            )
-        elif domain is not None and jd is not None:
-            role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
-                w.r.t the below mentioned Domain and Job Description
+            ### Domain:
+            {domain}
+            """.format(
+            domain=domain
+        )        
+    elif domain is not None and jd is not None:
+        role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+            Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
+            w.r.t the below mentioned Domain and Job Description
 
-                ### Domain:
-                {domain}
+            ### Domain:
+            {domain}
 
-                ### Job Description:
-                {jd}
-                """.format(
-                domain=domain, jd=jd
-            )
-        elif domain is None and jd is not None:
-            role = """You are an advanced language model trained to assist in providing concise 
-                and casual answers to interview questions. 
-                Your task is to answer questions from an interview transcript related to job description - {jd} in a simple, 
-                conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
-                """.format(
-                jd=jd
-            )
-        Chat_System_Message = """
-                ### Role:
-                {role}
-
-                ### Task:
-                Answer each interview question provided in the transcript. 
-                Your answers should be straightforward, using casual language that is easy to understand. 
-                Keep the answers short, ideally 3-4 sentences.
-
-                ### Context:
-                In interviews, concise and clear answers are valued. The goal is to provide responses that are easy to understand, avoid jargon, and sound natural in a conversational setting.
-
-                ### Guidelines:
-                1. **Simplicity:** Use simple language and avoid technical jargon or complex definitions.
-                2. **Casual Tone:** Maintain a conversational tone, as if you are chatting with a friend.
-                3. **Brevity:** Keep your responses short, ideally 3-4 sentences.
-                4. **Clarity:** Ensure that your answers are clear and directly address the question asked.
-                5. **Avoid Book Definitions:** Provide explanations in your own words, avoiding textbook-like definitions.
-                6. Dont give any extra text. Only give the required answer
-
-                ### Examples:
-                **Example 1:**
-                - **Question:** Can you explain what RESTful APIs are?
-                - **Answer:** Sure! RESTful APIs are a way for different software applications to talk to each other over the web. They use standard HTTP methods like GET and POST. It's like giving commands and getting responses.
-
-                ### Chain of Thought:
-                1. **Identify Questions:** Break down the transcript to identify each interview question.
-                2. **Formulate Answers:** Formulate simple, casual answers for each question, keeping in mind the guidelines.
-                3. **Ensure Brevity:** Make sure the answers are limited to 3-4 sentences.
-                4. **Review for Clarity:** Review the answers to ensure they are clear and easy to understand.
-
-                Note: Only output 3-4 sentences for each question. Do not provide any additional information or explanations.
-
-                ### Prompt:
-                Given the following interview transcript, answer each question in simple, casual terms, 
-                limiting your responses to 3-4 sentences for the given user question
-
-                """.format(
-            role=role
+            ### Job Description:
+            {jd}
+            """.format(
+            domain=domain, jd=jd
         )
 
-        print("Chat_System_Message",Chat_System_Message)
+    elif domain is None and jd is not None:
+        role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
+            Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
+            w.r.t the below mentioned Job Description
 
-        messages = [{"role": "system", "content": Chat_System_Message}]
+            ### Job Description:
+            {jd}
+            """.format(
+            jd=jd
+        )
+
+    Chat_System_Message = """
+            ### Role:
+            {role}
+
+            ### Task:
+            Answer each interview question provided in the transcript. 
+            Your answers should be straightforward, using casual language that is easy to understand. 
+            Keep the answers short, ideally 3-4 sentences.
+
+            ### Context:
+            In interviews, concise and clear answers are valued. The goal is to provide responses that are easy to understand, avoid jargon, and sound natural in a conversational setting.
+
+            ### Guidelines:
+            1. **Simplicity:** Use simple language and avoid technical jargon or complex definitions.
+            2. **Casual Tone:** Maintain a conversational tone, as if you are chatting with a friend.
+            3. **Brevity:** Keep your responses short, ideally 3-4 sentences.
+            4. **Clarity:** Ensure that your answers are clear and directly address the question asked.
+            5. **Avoid Book Definitions:** Provide explanations in your own words, avoiding textbook-like definitions.
+            6. Dont give any extra text. Only give the required answer
+
+            ### Examples:
+            **Example 1:**
+            - **Question:** Can you explain what RESTful APIs are?
+            - **Answer:** Sure! RESTful APIs are a way for different software applications to talk to each other over the web. They use standard HTTP methods like GET and POST. It's like giving commands and getting responses.
+
+            ### Chain of Thought:
+            1. **Identify Questions:** Break down the transcript to identify each interview question.
+            2. **Formulate Answers:** Formulate simple, casual answers for each question, keeping in mind the guidelines.
+            3. **Ensure Brevity:** Make sure the answers are limited to 3-4 sentences.
+            4. **Review for Clarity:** Review the answers to ensure they are clear and easy to understand.
+
+            Note: Only output 3-4 sentences for each question. Do not provide any additional information or explanations.
+
+            ### Prompt:
+            Given the following interview transcript, answer each question in simple, casual terms, 
+            limiting your responses to 3-4 sentences for the given user question
+
+            """.format(
+        role=role
+    )
+
+    messages = [{"role": "system", "content": Chat_System_Message}]
+    return messages
 
 
 def update_chat(messages, role, content):
@@ -106,14 +104,14 @@ def update_chat(messages, role, content):
 
 def get_chatgpt_response(messages):
     response = client.chat.completions.create(
-        model="gpt-4o", temperature=0.1, seed=42, messages=messages
+        model="gpt-4o-mini", temperature=0.1, seed=42, messages=messages
     )
     return response.choices[0].message.content
 
 
 def call_openai_api(final_prompt):
     response = client.chat.completions.create(
-        model="gpt-4o",  # "gpt-3.5-turbo-1106",
+        model="gpt-4o-mini",  # "gpt-3.5-turbo-1106",
         # response_format={"type": "json_object"},
         temperature=0.1,
         seed=42,
@@ -229,19 +227,21 @@ def extract_question_from_text(text):
     return res
 
 
-def get_answer_for_question(text):
-    global messages
+def get_answer_for_question(text, messages):
     # print("text from audio :", text)
+    # Ensure messages is initialized
+    if messages is None:
+        messages = []
 
     # if there are less than 3 words in the text then return empty string
     if len(text.split()) < 3:
-        return ""
+        return "", messages
 
     res = extract_question_from_text(text)
     lower_res = res.lower()
     print("Question from Text: ", res)
     if res.lower() == "".lower():
-        return ""
+        return "", messages
 
     # use regular expression to find the No and Technical and questionswords in "No Technical questions present in the text" in res
     if (
@@ -249,7 +249,7 @@ def get_answer_for_question(text):
         and re.search("technical", lower_res)
         and re.search("question", lower_res)
     ):
-        return ""
+        return "", messages
 
     # Initialize messages if not already done
     # if messages is None:
@@ -260,4 +260,4 @@ def get_answer_for_question(text):
     messages = update_chat(messages, "assistant", chat_response)
 
     print("Answer for the questions: ", chat_response)
-    return chat_response
+    return chat_response, messages
