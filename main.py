@@ -66,9 +66,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     qa_list.append(f'{data["question"]}')
                     qa_list.append(f"{full_reply_content}")
 
-                    # Only keep the latest 6 elements (3 questions and 3 answers)
-                    if len(qa_list) > 6:
-                        qa_list = qa_list[-6:]
+                    # Only keep the latest 2 elements (2 questions and 2 answers)
+                    if len(qa_list) > 4:
+                        qa_list = qa_list[-4:]
 
                     print("qa_list", qa_list)
                     response = "$".join(qa_list)

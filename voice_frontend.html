@@ -38,9 +38,6 @@
         li a {
             color: white;
             font-size: 18px;
-
-
-
             margin-right: 25px;
         }
 
@@ -52,7 +49,6 @@
             width: 90px;
         }
 
-
         button a {
             background-color: white;
             color: black;
@@ -62,7 +58,6 @@
 
         #startButton {
             background-color: white;
-            /* Green background */
             color: black;
             margin-left: 10px;
             border-radius: 10px;
@@ -73,7 +68,6 @@
 
         #stopButton {
             background-color: white;
-            /* Green background */
             color: black;
             margin-left: 10px;
             border-radius: 10px;
@@ -81,27 +75,21 @@
             width: 90px;
             font-weight: bold;
             display: none;
-            /* Hide stop button initially */
         }
 
         #status {
             margin-top: 5px;
-            /* To avoid overlap with the fixed header */
             padding: 10px;
             border: 1px solid #ccc;
             background-color: #ffffff;
-            /* White background */
             border-radius: 5px;
             width: 100%;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 18px;
             color: #333333;
-            /* Dark grey text */
             box-sizing: border-box;
-            /* Ensure padding and border are included in the element's total width and height */
         }
-
 
         * {
             padding: 0;
@@ -112,8 +100,6 @@
         ul {
             list-style: none;
             background: white;
-            ;
-
         }
 
         ul li {
@@ -151,7 +137,6 @@
         }
 
         #domain {
-
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -171,7 +156,6 @@
         }
 
         #jd {
-
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -180,7 +164,6 @@
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            /* background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 width%3D%2216%22 height%3D%2216%22 fill%3D%22%23333%22 viewBox%3D%220 0 16 16%22%3E%3Cpath d%3D%22M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z%22/%3E%3C/svg%3E'); */
             background-repeat: no-repeat;
             background-position: right 10px center;
             background-size: 16px 16px;
@@ -194,7 +177,6 @@
             border-color: #007bff;
             outline: none;
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-
         }
 
         .qa-box {
@@ -202,30 +184,40 @@
             padding: 20px;
             border: 1px solid #ccc;
             background-color: #ffffff;
-            /* White background */
             border-radius: 5px;
             width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             font-size: 16px;
             text-align: left;
             color: #333333;
-            /* Dark grey text */
             box-sizing: border-box;
-            /* Ensure padding and border are included in the element's total width and height */
         }
 
         .qa-box ul {
-            list-style-type: none;
-            padding: 0;
+            margin-bottom: 1px;
+            display: block;
         }
 
         .qa-box li {
-            margin-bottom: 10px;
+            margin-bottom: 1px;
+            display: block;
+        }
+
+        .qa-box pre {
+            white-space: pre-wrap;
+            /* Preserve formatting and allow text to wrap */
+            word-wrap: break-word;
+            /* Break long words to fit within the container */
+            font-size: 18px;
+            /* Set font size for text elements */
+            margin: 0;
+            line-height: 1.2;
         }
 
         .qa-box strong {
             color: #000000;
-            /* Black text for strong elements */
         }
     </style>
 </head>
@@ -247,8 +239,6 @@
                         <option value="Java">Java</option>
                     </select>
                 </li>
-
-
                 <button id="startButton">Start</button>
                 <button id="stopButton">Stop</button>
                 <button><a href="#">SignIn</a></button>

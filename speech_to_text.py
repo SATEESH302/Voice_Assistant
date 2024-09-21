@@ -16,7 +16,7 @@ def initialize_messages(domain=None, jd=None):
     if domain is None and jd is None:
         role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
             Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences.
-            """     
+            """
     elif domain is not None and jd is None:
         role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
             Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
@@ -26,7 +26,7 @@ def initialize_messages(domain=None, jd=None):
             {domain}
             """.format(
             domain=domain
-        )        
+        )
     elif domain is not None and jd is not None:
         role = """You are an advanced language model trained to assist in providing concise and casual answers to interview questions. 
             Your task is to answer questions from an interview transcript in a simple, conversational manner, avoiding complex definitions and limiting responses to 3-4 sentences
@@ -59,7 +59,8 @@ def initialize_messages(domain=None, jd=None):
             ### Task:
             Answer each interview question provided in the transcript. 
             Your answers should be straightforward, using casual language that is easy to understand. 
-            Keep the answers short, ideally 3-4 sentences.
+            Keep the answers short, ideally 3-4 sentences in bullet points.
+            Also if the answer has any code then output the code separately in the code block without markdown, the code can be SQL  queries, python code etc.
 
             ### Context:
             In interviews, concise and clear answers are valued. The goal is to provide responses that are easy to understand, avoid jargon, and sound natural in a conversational setting.
@@ -83,11 +84,17 @@ def initialize_messages(domain=None, jd=None):
             3. **Ensure Brevity:** Make sure the answers are limited to 3-4 sentences.
             4. **Review for Clarity:** Review the answers to ensure they are clear and easy to understand.
 
-            Note: Only output 3-4 sentences for each question. Do not provide any additional information or explanations.
+            Note: Only output 3-4 sentences for each question, ideally 3-4 sentences in bullet points.
+            Do not provide any additional information or explanations.
+            Also if the answer has any code then output the code separately in the code block without markdown, 
+            the code can be SQL  queries, python code etc.
+
+
 
             ### Prompt:
             Given the following interview transcript, answer each question in simple, casual terms, 
-            limiting your responses to 3-4 sentences for the given user question
+            limiting your responses to 3-4 sentences in bullet points for the given user question.
+            Make sure to output the code separately without markdown.
 
             """.format(
         role=role
