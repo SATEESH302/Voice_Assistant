@@ -82,14 +82,3 @@ async def websocket_endpoint(websocket: WebSocket):
                 break
     finally:
         manager.disconnect(websocket)
-
-
-# API to access HTML page voice_frontend.html
-@app.get("/")
-async def get():
-    return FileResponse("voice_frontend.html")
-
-
-@app.get("/script.js")
-async def get_js():
-    return FileResponse("script.js")
