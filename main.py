@@ -7,12 +7,24 @@ import os
 from speech_to_text import get_answer_for_question, initialize_messages
 from constants import open_ai_key
 import json
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 app = FastAPI()
 
 os.environ["OPENAI_KEY"] = open_ai_key  # OPENAI_API_KEY
 
 client = openai.OpenAI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ConnectionManager:
@@ -82,3 +94,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 break
     finally:
         manager.disconnect(websocket)
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
