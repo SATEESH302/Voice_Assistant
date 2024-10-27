@@ -4,3 +4,6 @@ openai
 websockets
 fastapi
 uvicorn
+psycopg2
+pydantic
+SQLAlchemy

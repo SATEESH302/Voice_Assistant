@@ -1,14 +1,14 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import FileResponse
-
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, HTTPException
+from pydantic import BaseModel
 import openai
-import time
 import os
 from speech_to_text import get_answer_for_question, initialize_messages
 from constants import open_ai_key
 import json
 from fastapi.middleware.cors import CORSMiddleware
-
+from sqlalchemy.orm import Session
+from models import SessionLocal, User
+from sqlalchemy.exc import SQLAlchemyError
 
 
 app = FastAPI()
@@ -25,7 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 class ConnectionManager:
     def __init__(self):
@@ -98,3 +97,20 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+class UserValidation(BaseModel):
+    email: str        
+
+@app.post("/validate_user")
+async def validate_user(user: UserValidation):
+    db: Session = SessionLocal()
+    try:
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if db_user is None:
+            raise HTTPException(status_code=403, detail="Access denied")
+        return {"message": "Access granted"}
+    except SQLAlchemyError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
